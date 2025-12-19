@@ -8,6 +8,7 @@ require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
+let players = [];
 
 app.use(cors());
 app.use(express.json());
@@ -29,6 +30,29 @@ app.post("/api/admin/login", (req, res) => {
   );
 
   res.json({ token });
+});
+
+app.post("/api/admin/players", (req, res) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const player = req.body;
+    players.push(player);
+
+    res.json({ message: "Player added", players });
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
 });
 
 
